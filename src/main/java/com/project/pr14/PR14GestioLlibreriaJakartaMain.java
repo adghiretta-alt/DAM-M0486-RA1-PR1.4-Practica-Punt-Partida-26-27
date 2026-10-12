@@ -1,24 +1,27 @@
 package com.project.pr14;
 
-import jakarta.json.*;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import com.project.objectes.Llibre;
+import jakarta.json.*;
+import jakarta.json.stream.JsonGenerator;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de llibres.
+ * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de llibres
+ * utilitzant Jakarta JSON Processing (JSON-P).
  */
 public class PR14GestioLlibreriaJakartaMain {
 
     private final File dataFile;
 
     /**
-     * Constructor de la classe PR14GestioLlibreriaJSONPMain.
+     * Constructor de la classe PR14GestioLlibreriaJakartaMain.
      *
      * @param dataFile Fitxer on es troben els llibres.
      */
@@ -47,6 +50,8 @@ public class PR14GestioLlibreriaJakartaMain {
 
     /**
      * Carrega els llibres des del fitxer JSON.
+     * Si el fitxer no existeix o no conté un JSON vàlid, mostra un missatge d'error i retorna null
+     * (no ha de propagar cap excepció).
      *
      * @return Llista de llibres o null si hi ha hagut un error en la lectura.
      */
@@ -87,7 +92,8 @@ public class PR14GestioLlibreriaJakartaMain {
     }
 
     /**
-     * Guarda la llista de llibres en un fitxer nou.
+     * Guarda la llista de llibres en un fitxer nou anomenat llibres_output_jakarta.json,
+     * dins del mateix directori que el fitxer d'entrada.
      *
      * @param llibres Llista de llibres a guardar.
      */

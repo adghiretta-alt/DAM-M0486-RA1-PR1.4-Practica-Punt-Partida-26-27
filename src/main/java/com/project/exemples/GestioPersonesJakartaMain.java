@@ -1,24 +1,34 @@
 package com.project.exemples;
 
-import jakarta.json.*;
-import java.io.*;
+import com.project.objectes.Persona;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonException;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonWriter;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import com.project.objectes.Persona;
-
 /**
- * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de persones.
+ * Exemple que llegeix, modifica i guarda una llista de persones amb Jakarta JSON Processing
+ * (model d'objectes: JsonArray, JsonObject...).
  */
 public class GestioPersonesJakartaMain {
 
     private final File dataFile;
 
     /**
-     * Constructor de la classe PR14GestioPersonesJakartaMain.
+     * Constructor de la classe GestioPersonesJakartaMain.
      *
      * @param dataFile Fitxer on es troben les persones.
      */
@@ -52,8 +62,8 @@ public class GestioPersonesJakartaMain {
      * @return Llista de persones o null si hi ha hagut un error en la lectura.
      */
     public List<Persona> carregarPersones() {
-        List<Persona> persones = new ArrayList<>();
-        try (JsonReader jsonReader = Json.createReader(new FileReader(dataFile))) {
+        try (JsonReader jsonReader = Json.createReader(new FileReader(dataFile, StandardCharsets.UTF_8))) {
+            List<Persona> persones = new ArrayList<>();
             JsonArray jsonArray = jsonReader.readArray();
             for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class)) {
                 int id = jsonObject.getInt("id");
@@ -61,10 +71,13 @@ public class GestioPersonesJakartaMain {
                 int edat = jsonObject.getInt("edat");
                 persones.add(new Persona(id, nom, edat));
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            return persones;
+        } catch (IOException | JsonException e) {
+            // IOException: el fitxer no existeix o no es pot llegir
+            // JsonException (no comprovada): el contingut no és un JSON vàlid
+            System.err.println("Error en llegir " + dataFile.getName() + ": " + e.getMessage());
+            return null;
         }
-        return persones;
     }
 
     /**
@@ -99,12 +112,7 @@ public class GestioPersonesJakartaMain {
      * @param id Identificador de la persona a esborrar.
      */
     public void esborrarPersona(List<Persona> persones, int id) {
-        Iterator<Persona> iterator = persones.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().getId() == id) {
-                iterator.remove();
-            }
-        }
+        persones.removeIf(persona -> persona.getId() == id);
     }
 
     /**
@@ -124,10 +132,11 @@ public class GestioPersonesJakartaMain {
         }
 
         JsonArray jsonArray = arrayBuilder.build();
-        try (JsonWriter jsonWriter = Json.createWriter(Files.newBufferedWriter(Paths.get(dataFile.getParent(), "persones_output_jakarta.json")))) {
+        try (Writer writer = Files.newBufferedWriter(Paths.get(dataFile.getParent(), "persones_output_jakarta.json"), StandardCharsets.UTF_8);
+             JsonWriter jsonWriter = Json.createWriter(writer)) {
             jsonWriter.writeArray(jsonArray);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | JsonException e) {
+            System.err.println("Error en guardar les persones: " + e.getMessage());
         }
     }
 }

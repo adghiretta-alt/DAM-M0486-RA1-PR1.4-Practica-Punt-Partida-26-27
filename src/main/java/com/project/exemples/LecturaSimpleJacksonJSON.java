@@ -1,27 +1,28 @@
 package com.project.exemples;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
-import java.io.IOException;
 
 public class LecturaSimpleJacksonJSON {
     public static void main(String[] args) {
         // Defineix la ruta del fitxer JSON
         File file = new File("data/exemples/json_lectura_simple_input.json");
 
-        // Crea un objecte ObjectMapper per treballar amb Jackson
-        ObjectMapper objectMapper = new ObjectMapper();
+        // Jackson 3: els mappers són immutables i es creen amb un builder
+        JsonMapper mapper = JsonMapper.builder().build();
 
         try {
-            // Llegeix el fitxer JSON i el converteix en un JsonNode
-            JsonNode jsonNode = objectMapper.readTree(file);
+            // Llegeix el fitxer JSON i el converteix en un arbre de nodes (JsonNode)
+            JsonNode jsonNode = mapper.readTree(file);
 
             // Mostra el contingut del JSON a la consola
             System.out.println(jsonNode.toPrettyString());
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JacksonException e) {
+            // A Jackson 3 les excepcions són no comprovades (unchecked), però cal gestionar-les igualment
+            System.err.println("No s'ha pogut llegir " + file + ": " + e.getOriginalMessage());
         }
     }
 }

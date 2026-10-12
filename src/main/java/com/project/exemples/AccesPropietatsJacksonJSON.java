@@ -1,35 +1,34 @@
 package com.project.exemples;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
 
 public class AccesPropietatsJacksonJSON {
     public static void main(String[] args) {
         // Defineix la ruta del fitxer JSON
         String filePath = "data/exemples/json_lectura_simple_input.json";
 
-        // Crear ObjectMapper per llegir el fitxer JSON
-        ObjectMapper objectMapper = new ObjectMapper();
+        // Crea el mapper per llegir el fitxer JSON (Jackson 3)
+        JsonMapper mapper = JsonMapper.builder().build();
 
         try {
             // Llegeix el fitxer JSON i el converteix en un JsonNode
-            JsonNode rootNode = objectMapper.readTree(new File(filePath));
+            JsonNode rootNode = mapper.readTree(new File(filePath));
 
-            // Accedeix a les propietats simples
-            String nom = rootNode.get("nom").asText();
+            // Accedeix a les propietats simples (a Jackson 3, asString() substitueix asText())
+            String nom = rootNode.get("nom").asString();
             int edat = rootNode.get("edat").asInt();
-            String ocupacio = rootNode.get("ocupacio").asText();
-            String correu = rootNode.get("correu").asText();
+            String ocupacio = rootNode.get("ocupacio").asString();
+            String correu = rootNode.get("correu").asString();
 
             // Accedeix a l'objecte aniuat 'direccio'
             JsonNode direccioNode = rootNode.get("direccio");
-            String carrer = direccioNode.get("carrer").asText();
-            String ciutat = direccioNode.get("ciutat").asText();
-            String codiPostal = direccioNode.get("codi_postal").asText();
+            String carrer = direccioNode.get("carrer").asString();
+            String ciutat = direccioNode.get("ciutat").asString();
+            String codiPostal = direccioNode.get("codi_postal").asString();
 
             // Accedeix a l'array 'telefon'
             JsonNode telefonArray = rootNode.get("telefon");
@@ -43,17 +42,15 @@ public class AccesPropietatsJacksonJSON {
             System.out.println("  Ciutat: " + ciutat);
             System.out.println("  Codi Postal: " + codiPostal);
 
-            // Recorre l'array 'telefon' i mostra cada número de telèfon
+            // Recorre l'array 'telefon' (un JsonNode és iterable) i mostra cada número de telèfon
             System.out.println("Telèfons:");
-            Iterator<JsonNode> elements = telefonArray.elements();
-            while (elements.hasNext()) {
-                JsonNode telefon = elements.next();
-                String tipus = telefon.get("tipus").asText();
-                String numero = telefon.get("numero").asText();
+            for (JsonNode telefon : telefonArray) {
+                String tipus = telefon.get("tipus").asString();
+                String numero = telefon.get("numero").asString();
                 System.out.println("  " + tipus + ": " + numero);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JacksonException e) {
+            System.err.println("No s'ha pogut llegir " + filePath + ": " + e.getOriginalMessage());
         }
     }
 }

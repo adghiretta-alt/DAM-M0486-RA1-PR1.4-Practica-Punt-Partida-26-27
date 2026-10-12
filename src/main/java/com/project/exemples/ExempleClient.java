@@ -4,12 +4,13 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class ExempleClient {
 
@@ -19,7 +20,7 @@ public class ExempleClient {
 
         // Crear l'objecte JSON utilitzant Jakarta JSON
         JsonObject personaJson = Json.createObjectBuilder()
-                .add("nom", "Joan Garcia")
+                .add("nom", "Núria Puig")
                 .add("anyNaixement", 1985)
                 .build();
 
@@ -28,27 +29,23 @@ public class ExempleClient {
 
         System.out.println("JSON a enviar: " + jsonString);
 
-        // Crear client HTTP amb HttpClient5
+        // Crear client HTTP amb HttpClient 5
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            // Crear la petició POST
+            // Crear la petició POST.
+            // ContentType.APPLICATION_JSON afegeix "application/json; charset=UTF-8" i codifica el cos en UTF-8
+            // (sense indicar-ho, StringEntity faria servir ISO-8859-1 i els accents arribarien malmesos).
             HttpPost postRequest = new HttpPost(url);
-            postRequest.setEntity(new StringEntity(jsonString));  // Utilitzar el String del JSON generat
-            postRequest.setHeader("Content-Type", "application/json");
+            postRequest.setEntity(new StringEntity(jsonString, ContentType.APPLICATION_JSON));
 
-            // Executar la petició i obtenir la resposta
-            try (CloseableHttpResponse response = client.execute(postRequest)) {
-                // Llegir la resposta del servidor
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {
-                    StringBuilder resposta = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        resposta.append(line);
-                    }
-                    System.out.println("Resposta del servidor: " + resposta.toString());
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            // Executar la petició: el "response handler" llegeix la resposta i allibera la connexió
+            String resposta = client.execute(postRequest, response -> {
+                System.out.println("Codi de resposta HTTP: " + response.getCode());
+                return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            });
+
+            System.out.println("Resposta del servidor: " + resposta);
+        } catch (IOException e) {
+            System.err.println("No s'ha pogut contactar amb el servidor (" + url + "): " + e.getMessage());
         }
     }
 }

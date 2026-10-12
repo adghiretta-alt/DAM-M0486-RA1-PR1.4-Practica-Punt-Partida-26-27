@@ -1,23 +1,26 @@
 package com.project.exemples;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.objectes.Persona;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de persones.
+ * Exemple que llegeix, modifica i guarda una llista de persones amb Jackson 3
+ * (vinculació de dades: JSON &lt;-&gt; objectes Java).
  */
 public class GestioPersonesJacksonMain {
 
     private final File dataFile;
 
+    // El mapper és costós de crear i és segur entre fils: es crea una vegada i es reutilitza
+    private final JsonMapper mapper = JsonMapper.builder().build();
+
     /**
-     * Constructor de la classe PR14GestioPersonesJacksonMain.
+     * Constructor de la classe GestioPersonesJacksonMain.
      *
      * @param dataFile Fitxer on es troben les persones.
      */
@@ -52,10 +55,10 @@ public class GestioPersonesJacksonMain {
      */
     public List<Persona> carregarPersones() {
         try {
-            ObjectMapper mapper = new ObjectMapper();
+            // TypeReference indica el tipus genèric complet: una llista de Persona
             return mapper.readValue(dataFile, new TypeReference<List<Persona>>() {});
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JacksonException e) {
+            System.err.println("Error en llegir " + dataFile.getName() + ": " + e.getOriginalMessage());
             return null;
         }
     }
@@ -92,12 +95,7 @@ public class GestioPersonesJacksonMain {
      * @param id Identificador de la persona a esborrar.
      */
     public void esborrarPersona(List<Persona> persones, int id) {
-        Iterator<Persona> iterator = persones.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().getId() == id) {
-                iterator.remove();
-            }
-        }
+        persones.removeIf(persona -> persona.getId() == id);
     }
 
     /**
@@ -106,12 +104,11 @@ public class GestioPersonesJacksonMain {
      * @param persones Llista de persones a guardar.
      */
     public void guardarPersones(List<Persona> persones) {
+        File outputFile = new File(dataFile.getParent(), "persones_output_jackson.json");
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            File outputFile = new File(dataFile.getParent(), "persones_output_jackson.json");
             mapper.writerWithDefaultPrettyPrinter().writeValue(outputFile, persones);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (JacksonException e) {
+            System.err.println("Error en guardar " + outputFile.getName() + ": " + e.getOriginalMessage());
         }
     }
 }

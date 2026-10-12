@@ -1,22 +1,22 @@
 package com.project.pr14;
 
+import com.project.objectes.Llibre;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.project.objectes.Llibre;
-
 /**
- * Classe de tests per a PR14GestioLlibreriaMain.
+ * Classe de tests per a PR14GestioLlibreriaJacksonMain.
  */
 public class PR14GestioLlibreriaJacksonMainTest {
 
@@ -38,18 +38,35 @@ public class PR14GestioLlibreriaJacksonMainTest {
     void setup() throws IOException {
         // Crea un fitxer temporal "llibres_input.json" dins del directori temporal creat per JUnit
         tempFile = new File(tempDir, "llibres_input.json");
-        try (FileWriter writer = new FileWriter(tempFile)) {
-            writer.write(JSON_CONTENT);
-        }
-        // Inicialitza l'objecte PR14GestioLlibreriaMain amb el fitxer temporal
+        Files.writeString(tempFile.toPath(), JSON_CONTENT, StandardCharsets.UTF_8);
+        // Inicialitza l'objecte PR14GestioLlibreriaJacksonMain amb el fitxer temporal
         app = new PR14GestioLlibreriaJacksonMain(tempFile);
     }
 
     @Test
     void testCarregarLlibres() {
         List<Llibre> llibres = app.carregarLlibres();
-        assertNotNull(llibres, "La llista de llibres no hauria de ser nul.");
+        assertNotNull(llibres, "La llista de llibres no hauria de ser nul·la.");
         assertEquals(3, llibres.size(), "Hauria d'haver-hi tres llibres al document JSON.");
+        assertEquals("Muntanyes màgiques", llibres.get(1).getTitol(), "El títol del segon llibre no s'ha llegit correctament.");
+    }
+
+    @Test
+    void testCarregarLlibresFitxerInexistent() {
+        PR14GestioLlibreriaJacksonMain appSenseFitxer = new PR14GestioLlibreriaJacksonMain(new File(tempDir, "no_existeix.json"));
+        List<Llibre> llibres = assertDoesNotThrow(appSenseFitxer::carregarLlibres,
+                "Si el fitxer no existeix, l'error s'ha de gestionar dins del mètode.");
+        assertNull(llibres, "Si el fitxer no existeix, carregarLlibres() ha de retornar null.");
+    }
+
+    @Test
+    void testCarregarLlibresJsonMalFormat() throws IOException {
+        File fitxerErroni = new File(tempDir, "llibres_erronis.json");
+        Files.writeString(fitxerErroni.toPath(), "[{\"id\": 1, \"titol\": ", StandardCharsets.UTF_8);
+        PR14GestioLlibreriaJacksonMain appErroni = new PR14GestioLlibreriaJacksonMain(fitxerErroni);
+        List<Llibre> llibres = assertDoesNotThrow(appErroni::carregarLlibres,
+                "Si el JSON no és vàlid, l'error s'ha de gestionar dins del mètode.");
+        assertNull(llibres, "Si el JSON no és vàlid, carregarLlibres() ha de retornar null.");
     }
 
     @Test
@@ -57,6 +74,7 @@ public class PR14GestioLlibreriaJacksonMainTest {
         List<Llibre> llibres = app.carregarLlibres();
         app.modificarAnyPublicacio(llibres, 1, 1995);
         assertEquals(1995, llibres.get(0).getAny(), "L'any del llibre amb id 1 hauria de ser 1995.");
+        assertEquals(2005, llibres.get(1).getAny(), "Només s'ha de modificar el llibre amb id 1.");
     }
 
     @Test
@@ -76,7 +94,7 @@ public class PR14GestioLlibreriaJacksonMainTest {
     }
 
     @Test
-    void testGuardarLlibres() throws IOException {
+    void testGuardarLlibres() {
         List<Llibre> llibres = app.carregarLlibres();
         app.modificarAnyPublicacio(llibres, 1, 1995);
         app.afegirNouLlibre(llibres, new Llibre(4, "Històries de la ciutat", "Miquel Soler", 2022));
@@ -85,11 +103,22 @@ public class PR14GestioLlibreriaJacksonMainTest {
 
         // Llegeix el fitxer de sortida i verifica el contingut
         File outputFile = new File(tempFile.getParent(), "llibres_output_jackson.json");
-        ObjectMapper mapper = new ObjectMapper();
+        assertTrue(outputFile.exists(), "El fitxer de sortida llibres_output_jackson.json hauria d'existir.");
+        JsonMapper mapper = JsonMapper.builder().build();
         List<Llibre> llibresGuardats = mapper.readValue(outputFile, new TypeReference<List<Llibre>>() {});
 
         assertEquals(3, llibresGuardats.size(), "Hauria d'haver-hi tres llibres al fitxer de sortida.");
         assertEquals(1995, llibresGuardats.get(0).getAny(), "L'any del llibre amb id 1 hauria de ser 1995 al fitxer de sortida.");
         assertEquals("Històries de la ciutat", llibresGuardats.get(2).getTitol(), "El títol del tercer llibre hauria de ser 'Històries de la ciutat' al fitxer de sortida.");
+    }
+
+    @Test
+    void testProcessarFitxerNoModificaEntrada() throws IOException {
+        app.processarFitxer();
+
+        // El fitxer d'entrada no s'ha de modificar: els canvis es guarden en un fitxer nou
+        String contingutEntrada = Files.readString(tempFile.toPath(), StandardCharsets.UTF_8);
+        assertEquals(JSON_CONTENT, contingutEntrada, "El fitxer d'entrada no s'ha de modificar.");
+        assertTrue(new File(tempDir, "llibres_output_jackson.json").exists(), "processarFitxer() hauria de generar el fitxer de sortida.");
     }
 }

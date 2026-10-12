@@ -34,3 +34,7 @@ node_modules
 target/classes
 target/maven-status
 target/*
+
+# IntelliJ IDEA
+.idea/
+*.iml

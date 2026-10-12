@@ -1,0 +1,2 @@
+# Els scripts de shell han de tenir finals de línia LF per funcionar a Linux i macOS
+*.sh text eol=lf

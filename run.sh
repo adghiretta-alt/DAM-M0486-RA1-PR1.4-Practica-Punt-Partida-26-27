@@ -15,7 +15,7 @@ echo "Main Class: $mainClass"
 
 # Execute mvn command with the profile and main class as arguments
 execArg="-PrunMain -Dexec.mainClass=$mainClass"
-echo "Exec args: $mainClass"
+echo "Exec args: $execArg"
 
 # Execute mvn command
 mvn clean test-compile exec:java $execArg 

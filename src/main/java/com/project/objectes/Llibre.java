@@ -6,7 +6,7 @@ public class Llibre {
     private String autor;
     private int any;
 
-    // Constructor per defecte
+    // Constructor per defecte (el necessiten les biblioteques de vinculació com Jackson)
     public Llibre() {
     }
 
@@ -23,12 +23,24 @@ public class Llibre {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getTitol() {
         return titol;
     }
 
+    public void setTitol(String titol) {
+        this.titol = titol;
+    }
+
     public String getAutor() {
         return autor;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
     }
 
     public int getAny() {
@@ -37,5 +49,16 @@ public class Llibre {
 
     public void setAny(int any) {
         this.any = any;
+    }
+
+    // Sobreescriptura del mètode toString per a una representació més clara de l'objecte
+    @Override
+    public String toString() {
+        return "Llibre{" +
+                "id=" + id +
+                ", titol='" + titol + '\'' +
+                ", autor='" + autor + '\'' +
+                ", any=" + any +
+                '}';
     }
 }

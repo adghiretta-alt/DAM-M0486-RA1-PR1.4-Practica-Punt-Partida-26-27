@@ -1,23 +1,23 @@
 package com.project.pr14;
 
 import com.project.objectes.Llibre;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Iterator;
 
 /**
- * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de llibres.
+ * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de llibres
+ * utilitzant Jackson 3.
  */
 public class PR14GestioLlibreriaJacksonMain {
 
     private final File dataFile;
 
     /**
-     * Constructor de la classe PR14GestioLlibreriaMain.
+     * Constructor de la classe PR14GestioLlibreriaJacksonMain.
      *
      * @param dataFile Fitxer on es troben els llibres.
      */
@@ -46,6 +46,8 @@ public class PR14GestioLlibreriaJacksonMain {
 
     /**
      * Carrega els llibres des del fitxer JSON.
+     * Si el fitxer no existeix o no conté un JSON vàlid, mostra un missatge d'error i retorna null
+     * (no ha de propagar cap excepció).
      *
      * @return Llista de llibres o null si hi ha hagut un error en la lectura.
      */
@@ -86,11 +88,12 @@ public class PR14GestioLlibreriaJacksonMain {
     }
 
     /**
-     * Guarda la llista de llibres en un fitxer nou.
+     * Guarda la llista de llibres en un fitxer nou anomenat llibres_output_jackson.json,
+     * dins del mateix directori que el fitxer d'entrada.
      *
      * @param llibres Llista de llibres a guardar.
      */
     public void guardarLlibres(List<Llibre> llibres) {
-        // *************** CODI PRÀCTICA **********************/        
+        // *************** CODI PRÀCTICA **********************/
     }
 }

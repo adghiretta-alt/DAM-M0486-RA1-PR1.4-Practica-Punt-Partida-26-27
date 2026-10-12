@@ -1,13 +1,13 @@
 [ {
+  "edat" : 35,
   "id" : 1,
-  "nom" : "Joan Garcia",
-  "edat" : 35
+  "nom" : "Joan Garcia"
 }, {
+  "edat" : 42,
   "id" : 3,
-  "nom" : "Anna López",
-  "edat" : 42
+  "nom" : "Anna López"
 }, {
+  "edat" : 30,
   "id" : 4,
-  "nom" : "Miquel Soler",
-  "edat" : 30
+  "nom" : "Miquel Soler"
 } ]

@@ -1,18 +1,18 @@
 {
-  "direccio" : {
-    "ciutat" : "València",
-    "carrer" : "Carrer de la Llum",
-    "codi_postal" : "46001"
-  },
-  "telefon" : [ {
-    "numero" : "963456789",
-    "tipus" : "casa"
-  }, {
-    "numero" : "612345678",
-    "tipus" : "mòbil"
-  } ],
   "nom" : "Pau López",
   "edat" : 30,
   "ocupacio" : "Dissenyador gràfic",
-  "correu" : "pau.lopez@example.com"
+  "correu" : "pau.lopez@example.com",
+  "direccio" : {
+    "carrer" : "Carrer de la Llum",
+    "ciutat" : "València",
+    "codi_postal" : "46001"
+  },
+  "telefon" : [ {
+    "tipus" : "casa",
+    "numero" : "963456789"
+  }, {
+    "tipus" : "mòbil",
+    "numero" : "612345678"
+  } ]
 }

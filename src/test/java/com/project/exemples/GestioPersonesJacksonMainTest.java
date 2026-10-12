@@ -1,11 +1,11 @@
 package com.project.exemples;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.objectes.Persona;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -15,7 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Classe de tests per a PR14GestioPersonesJacksonMain.
+ * Classe de tests per a GestioPersonesJacksonMain.
  */
 public class GestioPersonesJacksonMainTest {
 
@@ -40,7 +40,7 @@ public class GestioPersonesJacksonMainTest {
         try (FileWriter writer = new FileWriter(tempFile)) {
             writer.write(JSON_CONTENT);
         }
-        // Inicialitza l'objecte PR14GestioPersonesJacksonMain amb el fitxer temporal
+        // Inicialitza l'objecte GestioPersonesJacksonMain amb el fitxer temporal
         app = new GestioPersonesJacksonMain(tempFile);
     }
 
@@ -75,7 +75,7 @@ public class GestioPersonesJacksonMainTest {
     }
 
     @Test
-    void testGuardarPersones() throws IOException {
+    void testGuardarPersones() {
         List<Persona> persones = app.carregarPersones();
         app.modificarEdat(persones, 1, 35);
         app.afegirNovaPersona(persones, new Persona(4, "Miquel Soler", 30));
@@ -84,7 +84,7 @@ public class GestioPersonesJacksonMainTest {
 
         // Llegeix el fitxer de sortida i verifica el contingut
         File outputFile = new File(tempFile.getParent(), "persones_output_jackson.json");
-        ObjectMapper mapper = new ObjectMapper();
+        JsonMapper mapper = JsonMapper.builder().build();
         List<Persona> personesGuardades = mapper.readValue(outputFile, new TypeReference<List<Persona>>() {});
 
         assertEquals(3, personesGuardades.size(), "Hauria d'haver-hi tres persones al fitxer de sortida.");
