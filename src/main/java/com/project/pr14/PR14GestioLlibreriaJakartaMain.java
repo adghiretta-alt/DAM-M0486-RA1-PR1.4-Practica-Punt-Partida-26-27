@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,8 +57,31 @@ public class PR14GestioLlibreriaJakartaMain {
      * @return Llista de llibres o null si hi ha hagut un error en la lectura.
      */
     public List<Llibre> carregarLlibres() {
-        // *************** CODI PRÀCTICA **********************/
-        return null; // Substitueix pel teu
+        if (dataFile == null || !dataFile.exists()) {
+            System.err.println("Error: El fitxer no existeix.");
+            return null;
+        }
+
+        try (InputStream inputStream = Files.newInputStream(dataFile.toPath());
+             JsonReader jsonReader = Json.createReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+            JsonArray jsonArray = jsonReader.readArray();
+            List<Llibre> llibres = new ArrayList<>();
+
+            for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class)) {
+                int id = jsonObject.getInt("id");
+                String titol = jsonObject.getString("titol");
+                String autor = jsonObject.getString("autor");
+                int any = jsonObject.getInt("any");
+
+                llibres.add(new Llibre(id, titol, autor, any));
+            }
+            return llibres;
+
+        } catch (IOException | JsonException e) {
+            System.err.println("Error en llegir o processar el fitxer JSON: " + e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -69,6 +93,12 @@ public class PR14GestioLlibreriaJakartaMain {
      */
     public void modificarAnyPublicacio(List<Llibre> llibres, int id, int nouAny) {
         // *************** CODI PRÀCTICA **********************/
+        if (llibres != null) {
+            for (Llibre llibre : llibres) {
+                if (llibre.getId() == id) {
+                    llibre.setAny(nouAny);                }
+            }
+        }
     }
 
     /**
@@ -79,6 +109,9 @@ public class PR14GestioLlibreriaJakartaMain {
      */
     public void afegirNouLlibre(List<Llibre> llibres, Llibre nouLlibre) {
         // *************** CODI PRÀCTICA **********************/
+        if (llibres != null && nouLlibre != null) {
+            llibres.add(nouLlibre);
+        }
     }
 
     /**
@@ -89,6 +122,9 @@ public class PR14GestioLlibreriaJakartaMain {
      */
     public void esborrarLlibre(List<Llibre> llibres, int id) {
         // *************** CODI PRÀCTICA **********************/
+        if (llibres != null) {
+            llibres.removeIf(llibre -> llibre.getId() == id);
+        }
     }
 
     /**
@@ -98,6 +134,29 @@ public class PR14GestioLlibreriaJakartaMain {
      * @param llibres Llista de llibres a guardar.
      */
     public void guardarLlibres(List<Llibre> llibres) {
-        // *************** CODI PRÀCTICA **********************/
+        if (llibres == null || dataFile == null) return;
+
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        for (Llibre llibre : llibres) {
+            JsonObject llibreJson = Json.createObjectBuilder()
+                    .add("id", llibre.getId())
+                    .add("titol", llibre.getTitol())
+                    .add("autor", llibre.getAutor())
+                    .add("any", llibre.getAny())
+                    .build();
+            arrayBuilder.add(llibreJson);
+        }
+
+        JsonArray jsonArray = arrayBuilder.build();
+        Path outputPath = Paths.get(dataFile.getParent(), "llibres_output_jakarta.json");
+
+        try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8);
+             JsonWriter jsonWriter = Json.createWriter(writer)) {
+
+            jsonWriter.writeArray(jsonArray);
+
+        } catch (IOException | JsonException e) {
+            System.err.println("Error en guardar el fitxer JSON: " + e.getMessage());
+        }
     }
 }
