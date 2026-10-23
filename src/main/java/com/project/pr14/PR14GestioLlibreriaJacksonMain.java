@@ -8,12 +8,23 @@ import tools.jackson.core.JacksonException;
 
 import java.io.File;
 import java.util.List;
-import java.util.ArrayList;
 
 public class PR14GestioLlibreriaJacksonMain {
 
-    private final File dataFile =
-            new File(System.getProperty("user.dir"), "data/pr14/llibres_input.json");
+    private final File dataFile;
+
+    // Constructor por defecto
+    public PR14GestioLlibreriaJacksonMain() {
+        this.dataFile = new File(
+                System.getProperty("user.dir"),
+                "data/pr14/llibres_input.json"
+        );
+    }
+
+    // Constructor para poder utilizar otros archivos en los tests
+    public PR14GestioLlibreriaJacksonMain(File dataFile) {
+        this.dataFile = dataFile;
+    }
 
     public List<Llibre> carregarLlibres() {
         // *************** CODI PRÀCTICA **********************/
@@ -67,8 +78,11 @@ public class PR14GestioLlibreriaJacksonMain {
         }
 
         ObjectMapper mapper = JsonMapper.builder().build();
-        File outputFile = new File(dataFile.getParentFile(),
-                "llibres_output_jackson.json");
+
+        File outputFile = new File(
+                dataFile.getParentFile(),
+                "llibres_output_jackson.json"
+        );
 
         try {
             mapper.writerWithDefaultPrettyPrinter()
@@ -78,24 +92,29 @@ public class PR14GestioLlibreriaJacksonMain {
         }
     }
 
-    public static void main(String[] args) {
-        PR14GestioLlibreriaJacksonMain gestio =
-                new PR14GestioLlibreriaJacksonMain();
-
-        List<Llibre> llibres = gestio.carregarLlibres();
+    public void processarFitxer() {
+        List<Llibre> llibres = carregarLlibres();
 
         if (llibres == null) {
             return;
         }
 
-        gestio.modificarAnyPublicacio(llibres, 1, 1995);
+        modificarAnyPublicacio(llibres, 1, 1995);
 
-        gestio.afegirNouLlibre(
+        afegirNouLlibre(
                 llibres,
                 new Llibre(4, "Històries de la ciutat", "Miquel Soler", 2022)
         );
 
-        gestio.esborrarLlibre(llibres, 2);
-        gestio.guardarLlibres(llibres);
+        esborrarLlibre(llibres, 2);
+
+        guardarLlibres(llibres);
+    }
+
+    public static void main(String[] args) {
+        PR14GestioLlibreriaJacksonMain gestio =
+                new PR14GestioLlibreriaJacksonMain();
+
+        gestio.processarFitxer();
     }
 }
