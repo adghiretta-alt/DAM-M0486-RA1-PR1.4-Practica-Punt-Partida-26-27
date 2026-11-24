@@ -14,149 +14,360 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Classe principal que gestiona la lectura i el processament de fitxers JSON per obtenir dades de llibres
- * utilitzant Jakarta JSON Processing (JSON-P).
+ * Programa que gestiona libros almacenados
+ * en un fichero JSON utilizando Jakarta JSON-P.
  */
 public class PR14GestioLlibreriaJakartaMain {
 
+    // Archivo JSON de entrada
     private final File dataFile;
 
     /**
-     * Constructor de la classe PR14GestioLlibreriaJakartaMain.
-     *
-     * @param dataFile Fitxer on es troben els llibres.
+     * Constructor.
      */
-    public PR14GestioLlibreriaJakartaMain(File dataFile) {
+    public PR14GestioLlibreriaJakartaMain(
+            File dataFile) {
+
         this.dataFile = dataFile;
     }
 
+    /**
+     * Punto de entrada del programa.
+     */
     public static void main(String[] args) {
-        File dataFile = new File(System.getProperty("user.dir"), "data/pr14" + File.separator + "llibres_input.json");
-        PR14GestioLlibreriaJakartaMain app = new PR14GestioLlibreriaJakartaMain(dataFile);
+
+        File dataFile = new File(
+                System.getProperty("user.dir"),
+                "data/pr14" + File.separator +
+                        "llibres_input.json"
+        );
+
+        PR14GestioLlibreriaJakartaMain app =
+                new PR14GestioLlibreriaJakartaMain(
+                        dataFile
+                );
+
         app.processarFitxer();
     }
 
     /**
-     * Processa el fitxer JSON per carregar, modificar, afegir, esborrar i guardar les dades dels llibres.
+     * Ejecuta todo el proceso:
+     * cargar, modificar, añadir,
+     * eliminar y guardar.
      */
     public void processarFitxer() {
-        List<Llibre> llibres = carregarLlibres();
+
+        // Cargar libros desde el JSON
+        List<Llibre> llibres =
+                carregarLlibres();
+
         if (llibres != null) {
-            modificarAnyPublicacio(llibres, 1, 1995);
-            afegirNouLlibre(llibres, new Llibre(4, "Històries de la ciutat", "Miquel Soler", 2022));
-            esborrarLlibre(llibres, 2);
+
+            // Modificar año del libro con id 1
+            modificarAnyPublicacio(
+                    llibres,
+                    1,
+                    1995
+            );
+
+            // Añadir un nuevo libro
+            afegirNouLlibre(
+                    llibres,
+                    new Llibre(
+                            4,
+                            "Històries de la ciutat",
+                            "Miquel Soler",
+                            2022
+                    )
+            );
+
+            // Eliminar libro con id 2
+            esborrarLlibre(
+                    llibres,
+                    2
+            );
+
+            // Guardar resultado final
             guardarLlibres(llibres);
         }
     }
 
     /**
-     * Carrega els llibres des del fitxer JSON.
-     * Si el fitxer no existeix o no conté un JSON vàlid, mostra un missatge d'error i retorna null
-     * (no ha de propagar cap excepció).
-     *
-     * @return Llista de llibres o null si hi ha hagut un error en la lectura.
+     * Lee el JSON y lo convierte
+     * en una lista de libros.
      */
     public List<Llibre> carregarLlibres() {
-        if (dataFile == null || !dataFile.exists()) {
-            System.err.println("Error: El fitxer no existeix.");
+
+        // Comprobar que exista el archivo
+        if (dataFile == null
+                || !dataFile.exists()) {
+
+            System.err.println(
+                    "Error: El fitxer no existeix."
+            );
+
             return null;
         }
 
-        try (InputStream inputStream = Files.newInputStream(dataFile.toPath());
-             JsonReader jsonReader = Json.createReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+        try (
 
-            JsonArray jsonArray = jsonReader.readArray();
-            List<Llibre> llibres = new ArrayList<>();
+                /*
+                 * Abrir flujo de lectura.
+                 */
+                InputStream inputStream =
+                        Files.newInputStream(
+                                dataFile.toPath()
+                        );
 
-            for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class)) {
-                int id = jsonObject.getInt("id");
-                String titol = jsonObject.getString("titol");
-                String autor = jsonObject.getString("autor");
-                int any = jsonObject.getInt("any");
+                /*
+                 * JsonReader permite leer
+                 * contenido JSON.
+                 */
+                JsonReader jsonReader =
+                        Json.createReader(
+                                new InputStreamReader(
+                                        inputStream,
+                                        StandardCharsets.UTF_8
+                                )
+                        )
 
-                llibres.add(new Llibre(id, titol, autor, any));
+        ) {
+
+            /*
+             * Leer el JSON completo
+             * como array.
+             */
+            JsonArray jsonArray =
+                    jsonReader.readArray();
+
+            List<Llibre> llibres =
+                    new ArrayList<>();
+
+            /*
+             * Recorrer cada objeto JSON.
+             */
+            for (JsonObject jsonObject :
+                    jsonArray.getValuesAs(
+                            JsonObject.class
+                    )) {
+
+                /*
+                 * JSON:
+                 *
+                 * {
+                 *   "id": 1,
+                 *   "titol": "Java",
+                 *   "autor": "Joan",
+                 *   "any": 2020
+                 * }
+                 */
+
+                int id =
+                        jsonObject.getInt("id");
+
+                String titol =
+                        jsonObject.getString("titol");
+
+                String autor =
+                        jsonObject.getString("autor");
+
+                int any =
+                        jsonObject.getInt("any");
+
+                /*
+                 * Crear objeto Llibre
+                 * a partir de los datos.
+                 */
+                llibres.add(
+                        new Llibre(
+                                id,
+                                titol,
+                                autor,
+                                any
+                        )
+                );
             }
+
             return llibres;
 
         } catch (IOException | JsonException e) {
-            System.err.println("Error en llegir o processar el fitxer JSON: " + e.getMessage());
+
+            System.err.println(
+                    "Error en llegir o processar el fitxer JSON: "
+                            + e.getMessage()
+            );
+
             return null;
         }
     }
 
     /**
-     * Modifica l'any de publicació d'un llibre amb un id específic.
-     *
-     * @param llibres Llista de llibres.
-     * @param id Identificador del llibre a modificar.
-     * @param nouAny Nou any de publicació.
+     * Modifica el año de publicación
+     * de un libro.
      */
-    public void modificarAnyPublicacio(List<Llibre> llibres, int id, int nouAny) {
-        // *************** CODI PRÀCTICA **********************/
+    public void modificarAnyPublicacio(
+            List<Llibre> llibres,
+            int id,
+            int nouAny) {
+
         if (llibres != null) {
+
+            // Recorrer todos los libros
             for (Llibre llibre : llibres) {
+
+                // Buscar el libro indicado
                 if (llibre.getId() == id) {
-                    llibre.setAny(nouAny);                }
+
+                    // Cambiar año
+                    llibre.setAny(nouAny);
+                }
             }
         }
     }
 
     /**
-     * Afegeix un nou llibre a la llista de llibres.
-     *
-     * @param llibres Llista de llibres.
-     * @param nouLlibre Nou llibre a afegir.
+     * Añade un nuevo libro.
      */
-    public void afegirNouLlibre(List<Llibre> llibres, Llibre nouLlibre) {
-        // *************** CODI PRÀCTICA **********************/
-        if (llibres != null && nouLlibre != null) {
+    public void afegirNouLlibre(
+            List<Llibre> llibres,
+            Llibre nouLlibre) {
+
+        if (llibres != null
+                && nouLlibre != null) {
+
+            // Añadir libro a la lista
             llibres.add(nouLlibre);
         }
     }
 
     /**
-     * Esborra un llibre amb un id específic de la llista de llibres.
-     *
-     * @param llibres Llista de llibres.
-     * @param id Identificador del llibre a esborrar.
+     * Elimina un libro por ID.
      */
-    public void esborrarLlibre(List<Llibre> llibres, int id) {
-        // *************** CODI PRÀCTICA **********************/
+    public void esborrarLlibre(
+            List<Llibre> llibres,
+            int id) {
+
         if (llibres != null) {
-            llibres.removeIf(llibre -> llibre.getId() == id);
+
+            /*
+             * removeIf elimina los elementos
+             * que cumplan la condición.
+             */
+            llibres.removeIf(
+                    llibre ->
+                            llibre.getId() == id
+            );
         }
     }
 
     /**
-     * Guarda la llista de llibres en un fitxer nou anomenat llibres_output_jakarta.json,
-     * dins del mateix directori que el fitxer d'entrada.
-     *
-     * @param llibres Llista de llibres a guardar.
+     * Guarda los libros en
+     * llibres_output_jakarta.json
      */
-    public void guardarLlibres(List<Llibre> llibres) {
-        if (llibres == null || dataFile == null) return;
+    public void guardarLlibres(
+            List<Llibre> llibres) {
 
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        if (llibres == null
+                || dataFile == null) {
+
+            return;
+        }
+
+        /*
+         * JsonArrayBuilder sirve para
+         * construir un array JSON.
+         */
+        JsonArrayBuilder arrayBuilder =
+                Json.createArrayBuilder();
+
+        /*
+         * Convertir cada libro
+         * a objeto JSON.
+         */
         for (Llibre llibre : llibres) {
-            JsonObject llibreJson = Json.createObjectBuilder()
-                    .add("id", llibre.getId())
-                    .add("titol", llibre.getTitol())
-                    .add("autor", llibre.getAutor())
-                    .add("any", llibre.getAny())
-                    .build();
+
+            /*
+             * JsonObjectBuilder crea:
+             *
+             * {
+             *   "id":1,
+             *   "titol":"Java"
+             * }
+             */
+            JsonObject llibreJson =
+                    Json.createObjectBuilder()
+
+                            .add(
+                                    "id",
+                                    llibre.getId()
+                            )
+
+                            .add(
+                                    "titol",
+                                    llibre.getTitol()
+                            )
+
+                            .add(
+                                    "autor",
+                                    llibre.getAutor()
+                            )
+
+                            .add(
+                                    "any",
+                                    llibre.getAny()
+                            )
+
+                            .build();
+
+            // Añadir objeto al array
             arrayBuilder.add(llibreJson);
         }
 
-        JsonArray jsonArray = arrayBuilder.build();
-        Path outputPath = Paths.get(dataFile.getParent(), "llibres_output_jakarta.json");
+        /*
+         * Crear el array JSON final.
+         */
+        JsonArray jsonArray =
+                arrayBuilder.build();
 
-        try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8);
-             JsonWriter jsonWriter = Json.createWriter(writer)) {
+        // Ruta del archivo de salida
+        Path outputPath =
+                Paths.get(
+                        dataFile.getParent(),
+                        "llibres_output_jakarta.json"
+                );
 
-            jsonWriter.writeArray(jsonArray);
+        try (
+
+                /*
+                 * Abrir archivo para escritura.
+                 */
+                Writer writer =
+                        Files.newBufferedWriter(
+                                outputPath,
+                                StandardCharsets.UTF_8
+                        );
+
+                /*
+                 * JsonWriter escribe JSON.
+                 */
+                JsonWriter jsonWriter =
+                        Json.createWriter(writer)
+
+        ) {
+
+            /*
+             * Guardar array completo.
+             */
+            jsonWriter.writeArray(
+                    jsonArray
+            );
 
         } catch (IOException | JsonException e) {
-            System.err.println("Error en guardar el fitxer JSON: " + e.getMessage());
+
+            System.err.println(
+                    "Error en guardar el fitxer JSON: "
+                            + e.getMessage()
+            );
         }
     }
 }
